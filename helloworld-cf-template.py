@@ -29,8 +29,7 @@ from awacs.aws import (
 )
 
 from awacs.sts import AssumeRole
-
-ApplicationName = "nodeserver" 
+ 
 ApplicationPort = "3000" 
 
 GithubAccount = "russest3"
