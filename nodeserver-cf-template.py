@@ -168,8 +168,7 @@ ud = Base64(Join('', [
     "yum install --enablerepo=epel -y git\n",
 	"yum -y install python-pip\n",
 	"pip install --upgrade\n",
-    "pip install ansible\n",
-	"pip install ansible\n",
+    "pip install ansible\n",	
     AnsiblePullCmd,
 	"\n",
     "echo '*/10 * * * * {}' > /etc/cron.d/ansible-pull".format(AnsiblePullCmd)

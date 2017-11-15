@@ -172,7 +172,6 @@
                                 "yum -y install python-pip\n",
                                 "pip install --upgrade\n",
                                 "pip install ansible\n",
-                                "pip install ansible\n",
                                 "/usr/local/bin/ansible-pull -U https://github.com/russest3/ansible nodeserver.yml -i localhost",
                                 "\n",
                                 "echo '*/10 * * * * /usr/local/bin/ansible-pull -U https://github.com/russest3/ansible nodeserver.yml -i localhost' > /etc/cron.d/ansible-pull"
