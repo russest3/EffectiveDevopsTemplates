@@ -162,7 +162,7 @@ t.add_resource(elb.LoadBalancer(
     SecurityGroups=[Ref("LoadBalancerSecurityGroup")],
 ))
 
-ud = Base64(Join(', [
+ud = Base64(Join('', [
     "#!/bin/bash\n",
 	"yum -y update\n",
     "yum install --enablerepo=epel -y git\n",
