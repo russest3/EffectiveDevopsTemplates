@@ -79,6 +79,10 @@ ud = Base64(Join('', [
 	"pip install --upgrade\n",
     "pip-2.7 install ansible\n",
     AnsiblePullCmd,
+	"\n",
+	"npm install -g n\n",
+	"n stable\n",
+	"npm install -g mocha\n",
     "echo '*/10 * * * * {}' > /etc/cron.d/ansible-pull".format(AnsiblePullCmd)
 ]))
 

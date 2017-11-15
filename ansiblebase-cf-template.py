@@ -14,29 +14,17 @@ from troposphere import (
     Template,
 )
 
-from troposphere.iam import (
-    InstanceProfile,
-    PolicyType as IAMPolicy,
-    Role,
-)
+ApplicationName = "helloworld"
+ApplicationPort = "3000"
 
-from awacs.aws import (
-    Action,
-    Allow,
-    Policy,
-    Principal,
-    Statement,
-)
-
-from awacs.sts import AssumeRole
-
-ApplicationName = "jenkins"
-ApplicationPort = "8080"
-
-GithubAccount = "russest3"
+GithubAccount = "EffectiveDevOpsWithAWS"
 GithubAnsibleURL = "https://github.com/{}/ansible".format(GithubAccount)
 
-AnsiblePullCmd = "/usr/local/bin/ansible-pull -U {} {}.yml -i localhost".format(GithubAnsibleURL,ApplicationName)
+AnsiblePullCmd = \
+    "/usr/local/bin/ansible-pull -U {} {}.yml -i localhost".format(
+        GithubAnsibleURL,
+        ApplicationName
+    )
 
 PublicCidrIp = str(ip_network(get_ip()))
 
@@ -46,7 +34,7 @@ t.add_description("Effective DevOps in AWS: HelloWorld web application")
 
 t.add_parameter(Parameter(
     "KeyPair",
-    Description="NewKeyPair",
+    Description="Name of an existing EC2 KeyPair to SSH",
     Type="AWS::EC2::KeyPair::KeyName",
     ConstraintDescription="must be the name of an existing EC2 KeyPair.",
 ))
@@ -70,51 +58,13 @@ t.add_resource(ec2.SecurityGroup(
     ],
 ))
 
-ud = Base64(Join('', [
-    "#!/bin/bash\n",
-	"yum -y update\n",
-	"yum -y install epel-release\n",
-    "yum install --enablerepo=epel -y git\n",
-	"yum -y install python-pip\n",
-	"pip install --upgrade\n",
-    "pip-2.7 install ansible\n",
+ud = Base64(Join('\n', [
+    "#!/bin/bash",
+    "yum install --enablerepo=epel -y git",
+    "pip install ansible",
     AnsiblePullCmd,
     "echo '*/10 * * * * {}' > /etc/cron.d/ansible-pull".format(AnsiblePullCmd)
 ]))
-
-t.add_resource(Role(
-    "Role",
-    AssumeRolePolicyDocument=Policy(
-        Statement=[
-            Statement(
-                Effect=Allow,
-                Action=[AssumeRole],
-                Principal=Principal("Service", ["ec2.amazonaws.com"])
-            )
-        ]
-    )
-))
-
-t.add_resource(IAMPolicy(
-    "Policy",
-    PolicyName="AllowCodePipeline",
-    PolicyDocument=Policy(
-        Statement=[
-            Statement(
-                Effect=Allow,
-                Action=[Action("codepipeline", "*")],
-                Resource=["*"]
-            )
-        ]
-    ),
-    Roles=[Ref("Role")]
-))
-
-t.add_resource(InstanceProfile(
-    "InstanceProfile",
-    Path="/",
-    Roles=[Ref("Role")]
-))
 
 t.add_resource(ec2.Instance(
     "instance",
@@ -123,7 +73,6 @@ t.add_resource(ec2.Instance(
     SecurityGroups=[Ref("SecurityGroup")],
     KeyName=Ref("KeyPair"),
     UserData=ud,
-    IamInstanceProfile=Ref("InstanceProfile"),
 ))
 
 t.add_output(Output(

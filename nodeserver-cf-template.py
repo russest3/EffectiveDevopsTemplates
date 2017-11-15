@@ -30,13 +30,17 @@ from awacs.aws import (
 
 from awacs.sts import AssumeRole
 
-ApplicationName = "jenkins"
-ApplicationPort = "8080"
+ApplicationName = "nodeserver" 
+ApplicationPort = "3000" 
 
 GithubAccount = "russest3"
 GithubAnsibleURL = "https://github.com/{}/ansible".format(GithubAccount)
 
-AnsiblePullCmd = "/usr/local/bin/ansible-pull -U {} {}.yml -i localhost".format(GithubAnsibleURL,ApplicationName)
+AnsiblePullCmd = \
+    "/usr/local/bin/ansible-pull -U {} {}.yml -i localhost".format(
+        GithubAnsibleURL,
+        ApplicationName
+    )
 
 PublicCidrIp = str(ip_network(get_ip()))
 
@@ -70,15 +74,12 @@ t.add_resource(ec2.SecurityGroup(
     ],
 ))
 
-ud = Base64(Join('', [
-    "#!/bin/bash\n",
-	"yum -y update\n",
-	"yum -y install epel-release\n",
+ud = Base64(Join('\n', [
+    "#!/bin/bash",
     "yum install --enablerepo=epel -y git\n",
-	"yum -y install python-pip\n",
-	"pip install --upgrade\n",
-    "pip-2.7 install ansible\n",
+    "pip install ansible\n",
     AnsiblePullCmd,
+	"\n"
     "echo '*/10 * * * * {}' > /etc/cron.d/ansible-pull".format(AnsiblePullCmd)
 ]))
 
@@ -93,21 +94,6 @@ t.add_resource(Role(
             )
         ]
     )
-))
-
-t.add_resource(IAMPolicy(
-    "Policy",
-    PolicyName="AllowCodePipeline",
-    PolicyDocument=Policy(
-        Statement=[
-            Statement(
-                Effect=Allow,
-                Action=[Action("codepipeline", "*")],
-                Resource=["*"]
-            )
-        ]
-    ),
-    Roles=[Ref("Role")]
 ))
 
 t.add_resource(InstanceProfile(

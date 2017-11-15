@@ -14,30 +14,7 @@ from troposphere import (
     Template,
 )
 
-from troposphere.iam import (
-    InstanceProfile,
-    PolicyType as IAMPolicy,
-    Role,
-)
-
-from awacs.aws import (
-    Action,
-    Allow,
-    Policy,
-    Principal,
-    Statement,
-)
-
-from awacs.sts import AssumeRole
-
-ApplicationName = "jenkins"
-ApplicationPort = "8080"
-
-GithubAccount = "russest3"
-GithubAnsibleURL = "https://github.com/{}/ansible".format(GithubAccount)
-
-AnsiblePullCmd = "/usr/local/bin/ansible-pull -U {} {}.yml -i localhost".format(GithubAnsibleURL,ApplicationName)
-
+ApplicationPort = "3000"
 PublicCidrIp = str(ip_network(get_ip()))
 
 t = Template()
@@ -71,50 +48,12 @@ t.add_resource(ec2.SecurityGroup(
 ))
 
 ud = Base64(Join('', [
-    "#!/bin/bash\n",
-	"yum -y update\n",
-	"yum -y install epel-release\n",
-    "yum install --enablerepo=epel -y git\n",
-	"yum -y install python-pip\n",
-	"pip install --upgrade\n",
-    "pip-2.7 install ansible\n",
-    AnsiblePullCmd,
-    "echo '*/10 * * * * {}' > /etc/cron.d/ansible-pull".format(AnsiblePullCmd)
+    "#!/bin/bash",
+    "sudo yum install --enablerepo=epel -y nodejs\n",
+    "wget http://bit.ly/2vESNuc -O /home/ec2-user/helloworld.js\n",
+    "wget http://bit.ly/2vVvT18 -O /etc/init/helloworld.conf\n",
+    "start helloworld"
 ]))
-
-t.add_resource(Role(
-    "Role",
-    AssumeRolePolicyDocument=Policy(
-        Statement=[
-            Statement(
-                Effect=Allow,
-                Action=[AssumeRole],
-                Principal=Principal("Service", ["ec2.amazonaws.com"])
-            )
-        ]
-    )
-))
-
-t.add_resource(IAMPolicy(
-    "Policy",
-    PolicyName="AllowCodePipeline",
-    PolicyDocument=Policy(
-        Statement=[
-            Statement(
-                Effect=Allow,
-                Action=[Action("codepipeline", "*")],
-                Resource=["*"]
-            )
-        ]
-    ),
-    Roles=[Ref("Role")]
-))
-
-t.add_resource(InstanceProfile(
-    "InstanceProfile",
-    Path="/",
-    Roles=[Ref("Role")]
-))
 
 t.add_resource(ec2.Instance(
     "instance",
@@ -123,7 +62,6 @@ t.add_resource(ec2.Instance(
     SecurityGroups=[Ref("SecurityGroup")],
     KeyName=Ref("KeyPair"),
     UserData=ud,
-    IamInstanceProfile=Ref("InstanceProfile"),
 ))
 
 t.add_output(Output(
