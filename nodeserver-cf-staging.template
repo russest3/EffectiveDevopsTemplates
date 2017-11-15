@@ -109,7 +109,7 @@
                         "Fn::Join": [
                             "",
                             [
-                                "#!/bin/bash\n",
+                                "#!/bin/bash",
                                 "yum -y update\n",
                                 "yum install --enablerepo=epel -y git",
                                 "yum -y install python-pip\n",
