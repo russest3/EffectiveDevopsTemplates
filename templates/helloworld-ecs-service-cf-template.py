@@ -88,13 +88,7 @@ t.add_resource(ecs.Service(
     LoadBalancers=[ecs.LoadBalancer(
         ContainerName="helloworld",
         ContainerPort=3000,
-        TargetGroupArn=ImportValue(
-            Join(
-                "-",
-                [Select(0, Split("-", Ref("AWS::StackName"))),
-                    "alb-helloworld-target-group"]
-            ),
-        ),
+        TargetGroupArn="arn:aws:elasticloadbalancing:us-east-1:713832673520:targetgroup/produ-Targe-16LMSL5XHJZKZ/ed51d0bb550bae57",
     )],
     Role=Ref("ServiceRole")
 ))
