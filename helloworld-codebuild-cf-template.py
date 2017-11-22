@@ -73,7 +73,7 @@ phases:
       - aws codepipeline get-pipeline-execution --pipeline-name "${CODEBUILD_INITIATOR##*/}" --pipeline-execution-id $(cat /tmp/execution_id.txt) --query 'pipelineExecution.artifactRevisions[0].revisionId' --output=text > /tmp/tag.txt
       - printf "%s:%s" "$REPOSITORY_URI" "$(cat /tmp/tag.txt)" > /tmp/build_tag.txt
       - printf '{"tag":"%s"}' "$(cat /tmp/tag.txt)" > /tmp/build.json
-      - aws ecr get-login --region us-east-1
+      - eval $(aws ecr get-login --region us-east-1 | sed 's|https://||')
   build:
     commands:
       - docker build -t "$(cat /tmp/build_tag.txt)" .
