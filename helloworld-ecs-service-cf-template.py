@@ -100,4 +100,3 @@ t.add_resource(ecs.Service(
 ))
 
 print(t.to_json())
-
