@@ -45,7 +45,7 @@ from awacs.sts import AssumeRole
 ApplicationName = "nodeserver"
 ApplicationPort = "3000"
 
-GithubAccount = "russest3"
+GithubAccount = "EffectiveDevOpsWithAWS"
 GithubAnsibleURL = "https://github.com/{}/ansible".format(GithubAccount)
 
 AnsiblePullCmd = \
@@ -62,7 +62,7 @@ t.add_description("Effective DevOps in AWS: HelloWorld web application")
 
 t.add_parameter(Parameter(
     "KeyPair",
-    Description="NewKeyPair",
+    Description="Name of an existing EC2 KeyPair to SSH",
     Type="AWS::EC2::KeyPair::KeyName",
     ConstraintDescription="must be the name of an existing EC2 KeyPair.",
 ))
@@ -70,12 +70,12 @@ t.add_parameter(Parameter(
 t.add_parameter(Parameter(
     "VpcId",
     Type="AWS::EC2::VPC::Id",
-    Description="vpc-30ea2954"
+    Description="VPC"
 ))
 
 t.add_parameter(Parameter(
     "PublicSubnet",
-    Description="subnet-1db1e036",
+    Description="PublicSubnet",
     Type="List<AWS::EC2::Subnet::Id>",
     ConstraintDescription="PublicSubnet"
 ))
@@ -162,14 +162,11 @@ t.add_resource(elb.LoadBalancer(
     SecurityGroups=[Ref("LoadBalancerSecurityGroup")],
 ))
 
-ud = Base64(Join('', [
+ud = Base64(Join('\n', [
     "#!/bin/bash",
-	"yum -y update\n",
-    "yum install --enablerepo=epel -y git\n",
-	"yum -y install python-pip\n",	
-    "pip-2.7 install ansible\n",	
+    "yum install --enablerepo=epel -y git",
+    "pip install ansible",
     AnsiblePullCmd,
-	"\n",
     "echo '*/10 * * * * {}' > /etc/cron.d/ansible-pull".format(AnsiblePullCmd)
 ]))
 
@@ -200,6 +197,28 @@ t.add_resource(IAMPolicy(
             Statement(
                 Effect=Allow,
                 Action=[Action("s3", "*")],
+                Resource=["*"])
+        ]
+    ),
+    Roles=[Ref("Role")]
+))
+
+t.add_resource(IAMPolicy(
+    "MonitoringPolicy",
+    PolicyName="AllowSendingDataForMonitoring",
+    PolicyDocument=Policy(
+        Statement=[
+            Statement(
+                Effect=Allow,
+                Action=[
+                    Action("cloudwatch", "Put*"),
+                    Action("logs", "Create*"),
+                    Action("logs", "Put*"),
+                    Action("logs", "Describe*"),
+                    Action("events", "Put*"),
+                    Action("firehose", "Put*"),
+                    Action("autoscaling", "DescribeAutoScalingInstances"),
+                ],
                 Resource=["*"])
         ]
     ),
