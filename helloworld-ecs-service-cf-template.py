@@ -2,7 +2,9 @@
 
 from troposphere.ecs import (
     TaskDefinition,
-    ContainerDefinition
+    ContainerDefinition,
+	LogConfiguration,
+    Environment,
 )
 from troposphere import ecs
 from awacs.aws import (
@@ -53,7 +55,17 @@ t.add_resource(TaskDefinition(
             Cpu=256,
             Name="helloworld",
             PortMappings=[ecs.PortMapping(
-                ContainerPort=3000)]
+                ContainerPort=3000)],
+            Environment=[
+                Environment(Name='HELLOWORLD_VERSION', Value=Ref("Tag"))
+            ],
+            LogConfiguration=LogConfiguration(
+                LogDriver="awslogs",
+                Options={
+                    'awslogs-group': "/aws/ecs/helloworld",
+                    'awslogs-region': Ref("AWS::Region"),
+                }
+			)
         )
     ],
 ))
@@ -76,25 +88,13 @@ t.add_resource(Role(
 
 t.add_resource(ecs.Service(
     "service",
-    Cluster=ImportValue(
-        Join(
-            "-",
-            [Select(0, Split("-", Ref("AWS::StackName"))),
-                "cluster-id"]
-        )
-    ),
+    Cluster="staging-cluster2-ECSCluster-1QOGTB2P6NH1P",
     DesiredCount=1,
     TaskDefinition=Ref("task"),
     LoadBalancers=[ecs.LoadBalancer(
         ContainerName="helloworld",
         ContainerPort=3000,
-        TargetGroupArn=ImportValue(
-            Join(
-                "-",
-                [Select(0, Split("-", Ref("AWS::StackName"))),
-                    "alb-helloworld-target-group"]
-            ),
-        ),
+        TargetGroupArn="arn:aws:elasticloadbalancing:us-east-1:713832673520:targetgroup/stagi-Targe-TG2C4W6OI4TH/de6ec52d6c086628",
     )],
     Role=Ref("ServiceRole")
 ))
