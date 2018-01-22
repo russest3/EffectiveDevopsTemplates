@@ -40,7 +40,7 @@ t.add_parameter(Parameter(
 
 t.add_parameter(Parameter(
     "InstanceCount",
-    Default="2",
+    Default="1",
     Type="String",
     Description="Number instances in the cluster",
 ))
